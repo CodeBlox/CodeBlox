@@ -18,6 +18,10 @@ app.controller('projectsController', function($http, $scope) {
         {
             projName: "Shop",
             picName: "../images/shop.jpg"
+        },
+        {
+            projName: "test",
+            picName: "../images/website.jpg"
         }];
     
     $scope.projects = [
