@@ -2,11 +2,12 @@ var fs = require('fs');
 var recursive = require('recursive-readdir');
 var AdmZip = require('adm-zip');
 var path = require('path');
-
+var randomstring = require("randomstring");
 
 var config = require('../config/config');
+var Project = require('../models/project.db');
 
-module.exports.getFunc = function(req, res, next) {
+module.exports.saveProject = function(req, res, next) {
     getFileInDir(config.tmpDir + 'extract/' + req.params.name, function(files) {
         
         var codebloxfunctions = [];
@@ -29,8 +30,8 @@ module.exports.getFunc = function(req, res, next) {
                 var match = re.exec(fileContent);
                 while (match != null) {
                     codebloxfunctions.push({
-                        path: files[i],
-                        func: startFunctions[s]
+                        file: files[i].replace(config.tmpDir + 'extract\\' + req.params.name + '\\', ''),
+                        name: startFunctions[s]
                     });
                     
                     match = re.exec(fileContent);
@@ -38,51 +39,82 @@ module.exports.getFunc = function(req, res, next) {
             }
         }
         
-        //res.json(codebloxfunctions);
-        req.body = {};
-        req.body.funcs = [];
-        req.body.funcs.push(codebloxfunctions[0]);
-        
-        module.exports.deleteFunc(req, res, next);
+        Project({
+            name: req.params.name,
+            functions: codebloxfunctions
+        }).save(function(err, pro) {
+            if (err) throw err;
+
+            console.log('Projcet created!');
+            res.sendStatus(200);
+        });
     });
 };
 
 module.exports.deleteFunc = function(req, res, next) {
-    getFileInDir(config.tmpDir + 'extract/' + req.params.name, function(files) {
-        
-        var funcFiles = req.body.funcs;
-        var zip = new AdmZip();
+    if (!req.params.name) {
+        res.status(400).json({ error: 'No project name given'});
+    } else {
+        getFileInDir(config.tmpDir + 'extract/' + req.params.name, function(files) {
+            
+            var selectedFuncs = req.body.funcs;
+            
+            if (!selectedFuncs){
+                selectedFuncs = [];
+            }
+            
+            var zip = new AdmZip();
 
-        for(var i = 0; i < files.length; i++){
+            for(var i = 0; i < files.length; i++){
+                files[i] = files[i].replace(config.tmpDir + 'extract\\' + req.params.name + '\\', '')
+            }
             
-            var bIsFound = false;
-            
-            for (var j = 0; j < funcFiles.length; j++) {
-                if(funcFiles[j].path === files[i]) {
-                    bIsFound = true;
-                    
-                    var fileContent = fs.readFileSync(files[i], "utf8");
+            Project.findOne({name: req.params.name}, function(err, project) {
+                if (err) throw err;
                 
-                    var re = new RegExp("<!--.*{CodeBlox\\+" + funcFiles[j].func + "}.*-->[^]*<!--.*{CodeBlox\\-" + funcFiles[j].func + "}.*-->", "gmi");
-                    var match = re.exec(fileContent);
+                var functions = [];
+                for(var i = 0; i < project.functions.length; i++){
+                    if (selectedFuncs.indexOf(project.functions[i].name) != -1) {
+                        functions.push({
+                            name: project.functions[i].name,
+                            file: project.functions[i].file
+                        });
+                    }
+                }
+                
+                for(var i = 0; i < files.length; i++){
                     
-                    if (match != null) {
-                        fileContent = fileContent.replace(match[0], "");
+                    var bIsFound = false;
+                    
+                    for (var j = 0; j < functions.length; j++) {
+                        if(functions[j].file === files[i]) {
+                            bIsFound = true;
+                            
+                            var fileContent = fs.readFileSync(config.tmpDir + 'extract\\' + req.params.name + '\\' + files[i], "utf8");
+                        
+                            var re = new RegExp("<!--.*{CodeBlox\\+" + functions[j].name + "}.*-->[^]*<!--.*{CodeBlox\\-" + functions[j].name + "}.*-->", "gmi");
+                            var match = re.exec(fileContent);
+                            
+                            if (match) {
+                                fileContent = fileContent.replace(match[0], "");
+                            }
+                            
+                            zip.addFile(functions[j].file, new Buffer(fileContent));
+                        }
                     }
                     
-                    zip.addFile(path.basename(files[i]), new Buffer(fileContent));
+                    if (!bIsFound) {
+                        zip.addLocalFile(config.tmpDir + 'extract\\' + req.params.name + '\\' + files[i],
+                                        files[i].replace(config.tmpDir + 'extract\\' + req.params.name + '\\', ''));
+                    }
                 }
-            }
-            
-            if (!bIsFound) {
-                zip.addLocalFile(files[i]);
-            }
-        }
-        
-        zip.writeZip(config.tmpDir + 'codeblox/' + req.params.name + '.zip');
-        
-        //res.download(config.tmpDir + 'codeblox/' + req.params.name + '.zip');
-    });
+                var uid = randomstring.generate(5);
+                zip.writeZip(config.tmpDir + 'codeblox/' + req.params.name + '-' + uid + '.zip');
+                
+                res.download(config.tmpDir + 'codeblox/' + req.params.name + '-' + uid + '.zip');
+            });
+        });
+    }
 };
 
 function getFileInDir(dir, _callback) {
