@@ -9,8 +9,13 @@ var router = express.Router();
 /* Home */
 router.get('/', home.index);
 router.get('/unzip/:name', unzip.index);
-router.get('/projects', projects.getProjects);
-router.post('/projects', projects.addProject);
+
+/* Projects */
+router.get('/api/projects', projects.getProjects);
+router.post('/api/projects', projects.addProject);
+
+
+router.post('/api/codeblox/:name', codeblox.deleteFunc);
 
 /* CodeBlox */
 router.get('/api/codeblox/', codeblox.saveProject);

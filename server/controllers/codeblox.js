@@ -2,10 +2,10 @@ var fs = require('fs');
 var recursive = require('recursive-readdir');
 var AdmZip = require('adm-zip');
 var path = require('path');
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+var randomstring = require("randomstring");
 
 var config = require('../config/config');
+var Project = require('../models/project.db');
 
 module.exports.saveProject = function(req, res, next) {
     getFileInDir(config.tmpDir + 'extract/' + req.params.name, function(files) {
@@ -30,8 +30,8 @@ module.exports.saveProject = function(req, res, next) {
                 var match = re.exec(fileContent);
                 while (match != null) {
                     codebloxfunctions.push({
-                        fileName: files[i],
-                        funcName: startFunctions[s]
+                        file: files[i].replace(config.tmpDir + 'extract\\' + req.params.name + '\\', ''),
+                        name: startFunctions[s]
                     });
                     
                     match = re.exec(fileContent);
@@ -39,70 +39,72 @@ module.exports.saveProject = function(req, res, next) {
             }
         }
         
-        // Saving the project to db
-        mongoose.connect('mongodb://localhost/test');
-        var db = mongoose.connection;
-        db.on('error', console.error.bind(console, 'connection error:'));
-        db.once('open', function() {
-            var projectsSchema = new Schema({
-                projName: String,
-                funcs: [{ fileName: String, funcName: String }]
-            });
-            
-            var project = mongoose.model('codeBlox', projectsSchema);
-            
-            var proj1 = new project({ 
-                projName: req.params.name, 
-                funcs: codebloxfunctions
-                });
-                
-            proj1.save();
-        })
-        
-        //res.json(codebloxfunctions);
-        // req.body = {};
-        // req.body.funcs = [];
-        // req.body.funcs.push(codebloxfunctions[0]);
-        
-        //module.exports.deleteFunc(req, res, next);
+        Project({
+            name: req.params.name,
+            functions: codebloxfunctions
+        }).save(function(err, pro) {
+            if (err) throw err;
+
+            console.log('Projcet created!');
+            res.sendStatus(200);
+        });
     });
 };
 
 module.exports.deleteFunc = function(req, res, next) {
     getFileInDir(config.tmpDir + 'extract/' + req.params.name, function(files) {
         
-        var funcFiles = req.body.funcs;
+        var selectedFuncs = req.body.funcs;
         var zip = new AdmZip();
 
         for(var i = 0; i < files.length; i++){
+            files[i] = files[i].replace(config.tmpDir + 'extract\\' + req.params.name + '\\', '')
+        }
+        
+        Project.findOne({name: req.params.name}, function(err, project) {
+            if (err) throw err;
             
-            var bIsFound = false;
-            
-            for (var j = 0; j < funcFiles.length; j++) {
-                if(funcFiles[j].path === files[i]) {
-                    bIsFound = true;
-                    
-                    var fileContent = fs.readFileSync(files[i], "utf8");
-                
-                    var re = new RegExp("<!--.*{CodeBlox\\+" + funcFiles[j].func + "}.*-->[^]*<!--.*{CodeBlox\\-" + funcFiles[j].func + "}.*-->", "gmi");
-                    var match = re.exec(fileContent);
-                    
-                    if (match) {
-                        fileContent = fileContent.replace(match[0], "");
-                    }
-                    
-                    zip.addFile(path.basename(files[i]), new Buffer(fileContent));
+            var functions = [];
+            for(var i = 0; i < project.functions.length; i++){
+                if (selectedFuncs.indexOf(project.functions[i].name) != -1) {
+                    functions.push({
+                        name: project.functions[i].name,
+                        file: project.functions[i].file
+                    });
                 }
             }
             
-            if (!bIsFound) {
-                zip.addLocalFile(files[i]);
+            for(var i = 0; i < files.length; i++){
+                
+                var bIsFound = false;
+                
+                for (var j = 0; j < functions.length; j++) {
+                    if(functions[j].file === files[i]) {
+                        bIsFound = true;
+                        
+                        var fileContent = fs.readFileSync(config.tmpDir + 'extract\\' + req.params.name + '\\' + files[i], "utf8");
+                    
+                        var re = new RegExp("<!--.*{CodeBlox\\+" + functions[j].name + "}.*-->[^]*<!--.*{CodeBlox\\-" + functions[j].name + "}.*-->", "gmi");
+                        var match = re.exec(fileContent);
+                        
+                        if (match) {
+                            fileContent = fileContent.replace(match[0], "");
+                        }
+                        
+                        zip.addFile(functions[j].file, new Buffer(fileContent));
+                    }
+                }
+                
+                if (!bIsFound) {
+                    zip.addLocalFile(config.tmpDir + 'extract\\' + req.params.name + '\\' + files[i],
+                                     files[i].replace(config.tmpDir + 'extract\\' + req.params.name + '\\', ''));
+                }
             }
-        }
-        
-        zip.writeZip(config.tmpDir + 'codeblox/' + req.params.name + '.zip');
-        
-        //res.download(config.tmpDir + 'codeblox/' + req.params.name + '.zip');
+            var uid = randomstring.generate(5);
+            zip.writeZip(config.tmpDir + 'codeblox/' + req.params.name + '-' + uid + '.zip');
+            
+            res.download(config.tmpDir + 'codeblox/' + req.params.name + '-' + uid + '.zip');
+        });
     });
 };
 
