@@ -39,14 +39,27 @@ module.exports.saveProject = function(req, res, next) {
             }
         }
         
-        Project({
-            name: req.params.name,
-            functions: codebloxfunctions
-        }).save(function(err, pro) {
+        Project.findOne({name: req.params.name}, function(err, project) {
             if (err) throw err;
+            
+            var saveProj = project;
+            
+            if (saveProj) {
+                saveProj.name = req.params.name;
+                saveProj.functions = codebloxfunctions;
+            } else {
+                saveProj = Project({
+                    name: req.params.name,
+                    functions: codebloxfunctions
+                });
+            }
+            
+            saveProj.save(function(err, pro) {
+                if (err) throw err;
 
-            console.log('Projcet created!');
-            res.sendStatus(200);
+                console.log('Projcet created!');
+                res.sendStatus(200);
+            });
         });
     });
 };
