@@ -10,7 +10,7 @@ module.exports.index = function(req, res, next) {
 		var zip = new AdmZip(config.tmpDir + 'zip/' + req.params.name + '.zip');
 		zip.extractAllTo(config.tmpDir + 'extract/' + req.params.name, true);
 		
-		codeblox.getFunc(req, res, next);
+		codeblox.saveProject(req, res, next);
 	});
 };
 

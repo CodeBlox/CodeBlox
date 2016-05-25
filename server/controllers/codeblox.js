@@ -2,11 +2,12 @@ var fs = require('fs');
 var recursive = require('recursive-readdir');
 var AdmZip = require('adm-zip');
 var path = require('path');
-
+var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
 
 var config = require('../config/config');
 
-module.exports.getFunc = function(req, res, next) {
+module.exports.saveProject = function(req, res, next) {
     getFileInDir(config.tmpDir + 'extract/' + req.params.name, function(files) {
         
         var codebloxfunctions = [];
@@ -29,8 +30,8 @@ module.exports.getFunc = function(req, res, next) {
                 var match = re.exec(fileContent);
                 while (match != null) {
                     codebloxfunctions.push({
-                        path: files[i],
-                        func: startFunctions[s]
+                        fileName: files[i],
+                        funcName: startFunctions[s]
                     });
                     
                     match = re.exec(fileContent);
@@ -38,12 +39,32 @@ module.exports.getFunc = function(req, res, next) {
             }
         }
         
-        //res.json(codebloxfunctions);
-        req.body = {};
-        req.body.funcs = [];
-        req.body.funcs.push(codebloxfunctions[0]);
+        // Saving the project to db
+        mongoose.connect('mongodb://localhost/test');
+        var db = mongoose.connection;
+        db.on('error', console.error.bind(console, 'connection error:'));
+        db.once('open', function() {
+            var projectsSchema = new Schema({
+                projName: String,
+                funcs: [{ fileName: String, funcName: String }]
+            });
+            
+            var project = mongoose.model('codeBlox', projectsSchema);
+            
+            var proj1 = new project({ 
+                projName: req.params.name, 
+                funcs: codebloxfunctions
+                });
+                
+            proj1.save();
+        })
         
-        module.exports.deleteFunc(req, res, next);
+        //res.json(codebloxfunctions);
+        // req.body = {};
+        // req.body.funcs = [];
+        // req.body.funcs.push(codebloxfunctions[0]);
+        
+        //module.exports.deleteFunc(req, res, next);
     });
 };
 
@@ -66,7 +87,7 @@ module.exports.deleteFunc = function(req, res, next) {
                     var re = new RegExp("<!--.*{CodeBlox\\+" + funcFiles[j].func + "}.*-->[^]*<!--.*{CodeBlox\\-" + funcFiles[j].func + "}.*-->", "gmi");
                     var match = re.exec(fileContent);
                     
-                    if (match != null) {
+                    if (match) {
                         fileContent = fileContent.replace(match[0], "");
                     }
                     
