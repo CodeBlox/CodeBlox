@@ -8,7 +8,7 @@ var router = express.Router();
 
 /* Home */
 router.get('/', home.index);
-router.get('/unzip', unzip.index);
+router.get('/unzip/:name', unzip.index);
 
 /* CodeBlox */
 router.get('/api/codeblox/', codeblox.getFunc);

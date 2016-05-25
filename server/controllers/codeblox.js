@@ -4,7 +4,7 @@ var recursive = require('recursive-readdir');
 var config = require('../config/config');
 
 module.exports.getFunc = function(req, res, next) {
-    getFileInDir('C:\\Users\\Liron\\Desktop\\Projects\\CodeBlox\\server\\tmp\\test', function(files) {
+    getFileInDir(config.tmpDir + 'extract/' + req.params.name, function(files) {
         
         var codebloxfunctions = [];
         
