@@ -105,7 +105,7 @@ module.exports.deleteFunc = function(req, res, next) {
                     
                     if (!bIsFound) {
                         zip.addLocalFile(config.tmpDir + 'extract\\' + req.params.name + '\\' + files[i],
-                                        files[i].replace(config.tmpDir + 'extract\\' + req.params.name + '\\', ''));
+                                        files[i].replace(config.tmpDir + 'extract\\' + req.params.name + '\\', '').replace(path.basename(files[i]), ''));
                     }
                 }
                 var uid = randomstring.generate(5);
