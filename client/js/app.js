@@ -54,10 +54,8 @@ app.controller('projectsController', function($http, $scope) {
         return found;
     }
     
-    $http.get(serverSite + '/projects').then(function(data){
+    $http.get(serverSite + '/api/projects').then(function(data){
         $scope.projects = data.data;
-    }, function(){
-        
     });
     
 });
@@ -70,11 +68,24 @@ app.directive('cbProject', function($http){
           project: "="
         },
         link: function($scope){
+            $scope.attr = [];
             $scope.selected = { funcs : {} };
             
-            $scope.sendSelectedFuncs = function(){
-                  $http.post(serverSite + '/api/codeblox/', data).then(successCallback, errorCallback);
-            };
+            $scope.sendSelected = function(){
+                for (attr in $scope.selected.funcs) {
+                    if ($scope.selected.funcs[attr]) {
+                        $scope.attr.push(attr);
+                    }
+                }
+                
+                $http.post(serverSite + '/api/codeblox/' + $scope.project.name, {funcs: $scope.attr}).then(function (result){
+                    var blob=new Blob([result.data]);
+                    var link=document.createElement('a');
+                    link.href=window.URL.createObjectURL(blob);
+                    link.download=$scope.project.name + ".zip";
+                    link.click();
+            });
         }
-    };
+    }
+}
 });

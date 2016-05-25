@@ -3,15 +3,13 @@
 
 <div ng-controller="projectsController">
 <!--    <img class="thumbnail round-image" src="http://science-all.com/images/wallpapers/pic-of-flower/pic-of-flower-2.jpg">-->
-    <img class="thumbnail round-image" ng-src="{{ getPic(project.projName) }}">
-    <h5>{{project.projName}}</h5>
+    <img class="thumbnail round-image" ng-src="{{ getPic(project.name) }}">
+    <h5>{{project.name}}</h5>
     <a class="button expanded" ng-init="showList=false" ng-click="showList=!showList">Get Staeted!</a>
     <div ng-if="showList">
-        <form action="">
-            <span ng-repeat="func in project.funcs">
-            <input ng-model="selected.funcs[func.funcName]" type="checkbox" value="func.funcName"> {{ func.funcName }}
+        <span ng-repeat="func in project.functions">
+        <input ng-model="selected.funcs[func.name]" type="checkbox" value="func.name"> {{ func.name }}
             <br></span>
-            <input class="button expanded" type="submit" value="Download Zip">
-        </form>
+        <input class="button expanded" type="submit" ng-click="sendSelected()" value="Download Zip">
     </div>
 </div>
