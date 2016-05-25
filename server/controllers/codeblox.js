@@ -1,5 +1,8 @@
 var fs = require('fs');
 var recursive = require('recursive-readdir');
+var AdmZip = require('adm-zip');
+var path = require('path');
+
 
 var config = require('../config/config');
 
@@ -35,7 +38,50 @@ module.exports.getFunc = function(req, res, next) {
             }
         }
         
-        res.json(codebloxfunctions);
+        //res.json(codebloxfunctions);
+        req.body = {};
+        req.body.funcs = [];
+        req.body.funcs.push(codebloxfunctions[0]);
+        
+        module.exports.deleteFunc(req, res, next);
+    });
+};
+
+module.exports.deleteFunc = function(req, res, next) {
+    getFileInDir(config.tmpDir + 'extract/' + req.params.name, function(files) {
+        
+        var funcFiles = req.body.funcs;
+        var zip = new AdmZip();
+
+        for(var i = 0; i < files.length; i++){
+            
+            var bIsFound = false;
+            
+            for (var j = 0; j < funcFiles.length; j++) {
+                if(funcFiles[j].path === files[i]) {
+                    bIsFound = true;
+                    
+                    var fileContent = fs.readFileSync(files[i], "utf8");
+                
+                    var re = new RegExp("<!--.*{CodeBlox\\+" + funcFiles[j].func + "}.*-->[^]*<!--.*{CodeBlox\\-" + funcFiles[j].func + "}.*-->", "gmi");
+                    var match = re.exec(fileContent);
+                    
+                    if (match != null) {
+                        fileContent = fileContent.replace(match[0], "");
+                    }
+                    
+                    zip.addFile(path.basename(files[i]), new Buffer(fileContent));
+                }
+            }
+            
+            if (!bIsFound) {
+                zip.addLocalFile(files[i]);
+            }
+        }
+        
+        zip.writeZip(config.tmpDir + 'codeblox/' + req.params.name + '.zip');
+        
+        //res.download(config.tmpDir + 'codeblox/' + req.params.name + '.zip');
     });
 };
 
