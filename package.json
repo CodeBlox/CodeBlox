@@ -17,6 +17,7 @@
     "randomstring": "^1.1.5",
     "recursive-readdir": "^2.0.0",
     "split-text": "^1.0.0",
-    "unzip": "^0.1.11"
+    "unzip": "^0.1.11",
+    "zip-local": "^0.3.3"
   }
 }
