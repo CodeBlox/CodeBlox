@@ -14,7 +14,7 @@ module.exports.saveProject = function(req, res, next) {
         var codebloxfunctions = [];
         
         for(var i = 0; i < files.length; i++){
-            var fileContent = fs.readFileSync(files[i], "utf8");
+            var fileContent = fs.readFileSync(slash(files[i]), "utf8");
             var startFunctions = [];
 
             var re = new RegExp("<!--.*{CodeBlox\\+(.*)}.*-->", "gmi");
@@ -101,7 +101,7 @@ module.exports.deleteFunc = function(req, res, next) {
                     var bIsFound = false;
                     
                     for (var j = 0; j < functions.length; j++) {
-                        if(functions[j].file === files[i]) {
+                        if(slash(functions[j].file) === slash(files[i])) {
                             bIsFound = true;
                             
                             var fileContent = fs.readFileSync(slash(config.tmpDir + 'extract/' + req.params.name + '/' + files[i]), "utf8");
@@ -119,7 +119,7 @@ module.exports.deleteFunc = function(req, res, next) {
                     
                     if (!bIsFound) {
                         zip.addLocalFile(slash(config.tmpDir + 'extract/' + req.params.name + '/' + files[i]),
-                                        slash(files[i]).replace(slash(config.tmpDir + 'extract/' + req.params.name + '/'), '').replace(path.basename(files[i]), ''));
+                                        slash(files[i]).replace(slash(config.tmpDir + 'extract/' + req.params.name + '/'), '').replace(path.basename(slash(files[i])), ''));
                     }
                 }
                 var uid = randomstring.generate(5);
