@@ -1,9 +1,11 @@
 var express = require('express');
 
-var home = require('../controllers/home.js');
+var home = require('../controllers/home');
 var codeblox = require('../controllers/codeblox');
-var unzip = require('../controllers/unzip.js');
-var projects = require('../controllers/projects.js')
+var unzip = require('../controllers/unzip');
+var projects = require('../controllers/projects');
+var download = require('../controllers/download');
+
 var router = express.Router();
 
 /* Home */
@@ -20,5 +22,7 @@ router.post('/api/codeblox/:name', codeblox.deleteFunc);
 /* CodeBlox */
 router.get('/api/codeblox/', codeblox.saveProject);
 router.get('/api/codeblox/getParams', codeblox.saveProject);
+
+router.get('/api/download/:key', download.getZip);
 
 module.exports = router;
