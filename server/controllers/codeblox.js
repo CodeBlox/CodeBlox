@@ -125,7 +125,8 @@ module.exports.deleteFunc = function(req, res, next) {
                 var uid = randomstring.generate(5);
                 zip.writeZip(slash(config.tmpDir + 'codeblox/' + req.params.name + '-' + uid + '.zip'));
                 
-                res.download(slash(config.tmpDir + 'codeblox/' + req.params.name + '-' + uid + '.zip'));
+
+                res.json({key: req.params.name + '-' + uid});
             });
         });
     }
