@@ -68,11 +68,14 @@ app.directive('cbProject', function($http){
                 
                 $http.post(serverSite + '/api/codeblox/' + $scope.project.name, {funcs: $scope.attr})
                 .then(function (result) {
-                    var blob = new Blob([result.data]);
-                    var link = document.createElement('a');
-                    link.href = window.URL.createObjectURL(blob);
-                    link.download = $scope.project.name + ".zip";
-                    link.click();
+                    // var blob = new Blob([result.data], { type: 'application/zip' });
+                    // var link = document.createElement('a');
+                    // link.href = window.URL.createObjectURL(blob);
+                    // link.download = $scope.project.name + ".zip";
+                    // link.click();
+                    var k = result.data.key;
+                    window.open("/api/download/" + k, "_blank");
+
                 });
             }
         }
