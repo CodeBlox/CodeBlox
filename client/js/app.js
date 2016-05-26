@@ -48,8 +48,19 @@ app.controller('projectsController', function($http, $scope) {
     
     $http.get(serverSite + '/api/projects').then(function(data){
         $scope.projects = data.data;
-        $scope.projects.push({ name: "front-end Only"})
+        //$scope.projects.push({ name: "front-end Only"})
     });
+
+    $scope.frontend = function() {
+        $http.get("http://40.127.177.147:4321/api/server/run/students")
+        .then(function(data) {
+            window.alert("created new server for you\n" + data.data.port);
+            return data.data.name;
+        })
+        .then(function(name) {
+            window.open("http://40.127.177.147:4321/api/download/"+name, "_blank");
+        });
+    }
     
 });
 
