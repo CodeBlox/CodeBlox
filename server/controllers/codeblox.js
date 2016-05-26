@@ -14,7 +14,7 @@ module.exports.saveProject = function(req, res, next) {
         var codebloxfunctions = [];
         
         for(var i = 0; i < files.length; i++){
-            var fileContent = fs.readFileSync(files[i], "utf8");
+            var fileContent = fs.readFileSync(slash(files[i]), "utf8");
             var startFunctions = [];
 
             var re = new RegExp("<!--.*{CodeBlox\\+(.*)}.*-->", "gmi");
@@ -100,26 +100,31 @@ module.exports.deleteFunc = function(req, res, next) {
                     
                     var bIsFound = false;
                     
+                    var fileContent = null;
+                    
                     for (var j = 0; j < functions.length; j++) {
-                        if(functions[j].file === files[i]) {
+                        if(slash(functions[j].file) === slash(files[i])) {
                             bIsFound = true;
                             
-                            var fileContent = fs.readFileSync(slash(config.tmpDir + 'extract/' + req.params.name + '/' + files[i]), "utf8");
-                        
+                            if(fileContent == null) {
+                                fileContent = fs.readFileSync(slash(config.tmpDir + 'extract/' + req.params.name + '/' + files[i]), "utf8");
+                            }
+                            
                             var re = new RegExp("<!--.*{CodeBlox\\+" + functions[j].name + "}.*-->[^]*<!--.*{CodeBlox\\-" + functions[j].name + "}.*-->", "gmi");
                             var match = re.exec(fileContent);
                             
                             if (match) {
                                 fileContent = fileContent.replace(match[0], "");
                             }
-                            
-                            zip.addFile(slash(functions[j].file), new Buffer(fileContent));
                         }
                     }
                     
-                    if (!bIsFound) {
+                    if (bIsFound) {
+                        zip.addFile(slash(files[i]), new Buffer(fileContent));
+                        fileContent = null;
+                    } else {
                         zip.addLocalFile(slash(config.tmpDir + 'extract/' + req.params.name + '/' + files[i]),
-                                        slash(files[i]).replace(slash(config.tmpDir + 'extract/' + req.params.name + '/'), '').replace(path.basename(files[i]), ''));
+                                        slash(files[i]).replace(slash(config.tmpDir + 'extract/' + req.params.name + '/'), '').replace(path.basename(slash(files[i])), ''));
                     }
                 }
                 var uid = randomstring.generate(5);

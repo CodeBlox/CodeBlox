@@ -8,6 +8,3 @@ module.exports.getZip = function(req, res, next) {
         res.sendStatus(400);
     }
 };
-  
-
-                
