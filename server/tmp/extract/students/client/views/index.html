@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en-US" ng-app="StudentsApp">
+<body>
+
+<div ng-controller="homeCtrl">
+ 	<!-- {CodeBlox+ShowStudents_HTML_ANGULAR} -->
+     <ul>
+        <li ng-repeat="stud in students">
+            {{stud.name}}
+        </li>  
+    </ul>
+    <br><br>
+    <!-- {CodeBlox-ShowStudents_HTML_ANGULAR} -->
+    <!-- {CodeBlox+AddStudent_HTML_ANGULAR} -->
+    Name: <input type="text" ng-model="stud.name"><br>
+    <button ng-click="addStud()">Add Student</button>
+    <!-- {CodeBlox-AddStudent_HTML_ANGULAR} -->
+</div>
+
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+<!-- {CodeBlox+AngularSide_JS_ANGULAR} -->
+<script>
+    var app = angular.module('StudentsApp',[]);
+    
+    app.controller('homeCtrl', function ($scope, $http) {
+        $http({
+            method : "GET",
+            url : "api/students"
+        }).then(function success(res) {
+            $scope.students = res.data;
+        }, function error(res) {
+           
+        });
+        
+        $scope.addStud = function() {
+            $http({
+                method : "POST",
+                url : "api/students",
+                data: {
+                    name: $scope.stud.name
+                }
+            }).then(function success(res) {
+                $scope.students.push({
+                    name: $scope.stud.name
+                });
+
+                $scope.stud.name = "";
+            }, function error(res) {
+            
+            });
+        };
+    });
+</script>
+<!-- {CodeBlox-AngularSide_JS_ANGULAR} -->
+</body>
+</html>
