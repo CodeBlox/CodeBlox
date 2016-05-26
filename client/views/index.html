@@ -9,57 +9,47 @@
     <link rel="stylesheet" href="http://dhbhdrzi4tiry.cloudfront.net/cdn/sites/foundation.min.css">
     <link rel="stylesheet" href="../css/main.css">
     <link rel="icon" type="image/png" href="../images/logo.png" />
+    <link rel="stylesheet" href="../css/animate.min.css">
   </head>
   <body>
-
     <div class="row columns">
       <div class="orbit" role="region" aria-label="Favorite Space Pictures" data-orbit>
         <ul class="orbit-container">
           <li class="orbit-slide is-active">
-            <img src="../images/newlogo.png">
+            <img src="../images/newlogo.png" id="logo">
           </li>
         </ul>
       </div>
     </div>
-
     <div class="row column text-center">
-      <h1>Welcome, what do you want to learn today?</h1>
+      <h1 class="animated bounceIn">Welcome, what would you like to learn today?</h1>
       <p class="lead">CSS, HTML, NodeJS, Angular and many more</p>
       <a href="#" class="button large hollow">Learn More</a>
-     <!-- <a href="#" class="button large hollow">Learn Less</a>-->
     </div>
-
     <hr>
-    
     <div ng-controller="projectsController">
-<!--        <div class="row small-up-2 large-up-4">-->
         <div class="row small-up-2 large-up-4">
-            <div ng-repeat="project in projects" class="column" cb-project project="project"></div>
+            <div ng-repeat="project in projects" class="column" cb-project project="project">
+            </div>
+            <div class="column" class="ng-scope">
+                <img class="thumbnail round-image" ng-src="../images/chat.JPG" src="../images/website.jpg">
+                <h5 class="ng-binding">front end only</h5>
+                <a class="button expanded" ng-click="frontend()">Start Now!</a>
+            </div>
         </div>
     </div>
-    
     <hr>
 
-   <!-- <div class="row column">
-      <div class="callout primary text-center">
-        <h3>Really Great Deals</h3>
-        <p>In condimentum facilisis porta. Sed nec diam eu diam mattis viverra. Nulla fringilla, orci ac euismod semper, magna diam porttitor.</p>
-      </div>-->
-    </div>
-
-    <hr>
-
-<!--    <div class="row columns">-->
-      <div class="row medium-8 large-7 columns">
-<!--        <div class="column">-->
+    <div class="row">
+      <div class="large-6 columns">
         <h4 style="text-align: center;"> About Us</h4>
         <img class="thumbnail" src="http://placehold.it/700x250">
         <p style="text-align: center;">We are the best team ever on HackToval 2016</p>
       </div>
-<!--    </div>-->
-
+    </div>
+      
     <hr>
-    
+      
     <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
     <script src="http://dhbhdrzi4tiry.cloudfront.net/cdn/sites/foundation.js"></script>
     <script>

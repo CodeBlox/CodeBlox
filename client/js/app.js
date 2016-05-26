@@ -1,5 +1,5 @@
 var app = angular.module('codeBloxApp', []);
-var serverSite = "http://755f89d9.ngrok.io";
+var serverSite = "http://40.127.177.147:3000";
 
 app.controller('projectsController', function($http, $scope) {
     $scope.pictures = [
@@ -20,76 +20,80 @@ app.controller('projectsController', function($http, $scope) {
             picName: "../images/shop.jpg"
         },
         {
+            projName: "front-end Only",
+            picName: "../images/chat.JPG"
+        },
+        {
+            projName: "students",
+            picName: "../images/shop.jpg"
+        },
+        {
             projName: "test",
             picName: "../images/website.jpg"
         }];
     
-    $scope.projects = [
-        {
-            projName: "Chat",
-            funcs: [{filename: "x.css", funcName: "css"}, 
-                    {filename: "x.html", funcName: "HTML"},
-                    {filename: "x.js", funcName: "AngularJS"}]
-        },
-        {
-            projName: "Forum",
-            funcs: [{filename: "x.js", funcName: "NodeJS"}, 
-                    {filename: "x.html", funcName: "HTML"}]
-        },
-        {
-            projName: "Blog",
-            funcs: [{filename: "x.js", funcName: "NodeJS"}, 
-                    {filename: "x.html", funcName: "HTML"}]
-        },
-        {
-            projName: "Shop",
-            funcs: [{filename: "x.js", funcName: "NodeJS"}, 
-                    {filename: "x.html", funcName: "HTML"}]
-        }
-    ];
-    
     $scope.getPic = function(projName) {
         var found = $scope.pictures.find(function(pic) {
             return pic.projName == projName;
-        }).picName;
+        });
         
-        console.log(found);
-        
-        return found;
+        var returnValue = '';
+
+        if (found) {
+            returnValue = found.picName;
+        }
+
+        return returnValue;
     }
     
     $http.get(serverSite + '/api/projects').then(function(data){
         $scope.projects = data.data;
+        //$scope.projects.push({ name: "front-end Only"})
     });
+
+    $scope.frontend = function() {
+        $http.get("http://40.127.177.147:4321/api/server/run/students")
+        .then(function(data) {
+            window.alert("created new server for you\n" + data.data.port);
+            return data.data.name;
+        })
+        .then(function(name) {
+            window.open("http://40.127.177.147:4321/api/download/"+name, "_blank");
+        });
+    }
     
 });
 
 app.directive('cbProject', function($http){
     return {
         restrict: 'A',
-        templateUrl: 'project.html',
+        templateUrl: '../views/project.html',
         scope: {
           project: "="
         },
-        link: function($scope){
+        link: function($scope) {
             $scope.attr = [];
             $scope.selected = { funcs : {} };
             
-            $scope.sendSelected = function(){
+            $scope.sendSelected = function() {
                 for (attr in $scope.selected.funcs) {
                     if ($scope.selected.funcs[attr]) {
                         $scope.attr.push(attr);
                     }
                 }
                 
-                $http.post(serverSite + '/api/codeblox/' + $scope.project.name, {funcs: $scope.attr}).then(function (result){
-                    var blob=new Blob([result.data]);
-                    var link=document.createElement('a');
-                    link.href=window.URL.createObjectURL(blob);
-                    link.download=$scope.project.name + ".zip";
-                    link.click();
-            });
+                $http.post(serverSite + '/api/codeblox/' + $scope.project.name, {funcs: $scope.attr})
+                .then(function (result) {
+                    // var blob = new Blob([result.data], { type: 'application/zip' });
+                    // var link = document.createElement('a');
+                    // link.href = window.URL.createObjectURL(blob);
+                    // link.download = $scope.project.name + ".zip";
+                    // link.click();
+                    var k = result.data.key;
+                    window.open("/api/download/" + k, "_blank");
+
+                });
+            }
         }
     }
-}
 });

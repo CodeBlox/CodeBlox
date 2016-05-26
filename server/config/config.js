@@ -1,7 +1,7 @@
 var appRoot = require('app-root-path');
 
-module.exports.viewDir = appRoot + "\\client\\views\\";
-module.exports.tmpDir = appRoot + "\\server\\tmp\\";
+module.exports.viewDir = appRoot + "/client/views/";
+module.exports.tmpDir = appRoot + "/server/tmp/";
 
 // Bring Mongoose into the app 
 var mongoose = require('mongoose'); 

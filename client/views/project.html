@@ -5,7 +5,7 @@
 <!--    <img class="thumbnail round-image" src="http://science-all.com/images/wallpapers/pic-of-flower/pic-of-flower-2.jpg">-->
     <img class="thumbnail round-image" ng-src="{{ getPic(project.name) }}">
     <h5>{{project.name}}</h5>
-    <a class="button expanded" ng-init="showList=false" ng-click="showList=!showList">Get Staeted!</a>
+    <a class="button expanded" ng-init="showList=false" ng-click="showList=!showList">Start Now!</a>
     <div ng-if="showList">
         <span ng-repeat="func in project.functions">
         <input ng-model="selected.funcs[func.name]" type="checkbox" value="func.name"> {{ func.name }}
