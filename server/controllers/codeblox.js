@@ -3,12 +3,13 @@ var recursive = require('recursive-readdir');
 var AdmZip = require('adm-zip');
 var path = require('path');
 var randomstring = require("randomstring");
+var slash = require('slash');
 
 var config = require('../config/config');
 var Project = require('../models/project.db');
 
 module.exports.saveProject = function(req, res, next) {
-    getFileInDir(config.tmpDir + 'extract/' + req.params.name, function(files) {
+    getFileInDir(slash(config.tmpDir + 'extract/' + req.params.name), function(files) {
         
         var codebloxfunctions = [];
         
@@ -30,7 +31,7 @@ module.exports.saveProject = function(req, res, next) {
                 var match = re.exec(fileContent);
                 while (match != null) {
                     codebloxfunctions.push({
-                        file: files[i].replace(config.tmpDir + 'extract\\' + req.params.name + '\\', ''),
+                        file: slash(files[i]).replace(slash(config.tmpDir + 'extract/' + req.params.name + '/'), ''),
                         name: startFunctions[s]
                     });
                     
@@ -57,7 +58,7 @@ module.exports.saveProject = function(req, res, next) {
             saveProj.save(function(err, pro) {
                 if (err) throw err;
 
-                console.log('Projcet created!');
+                console.log('Projcet saved!');
                 res.sendStatus(200);
             });
         });
@@ -68,7 +69,7 @@ module.exports.deleteFunc = function(req, res, next) {
     if (!req.params.name) {
         res.status(400).json({ error: 'No project name given'});
     } else {
-        getFileInDir(config.tmpDir + 'extract/' + req.params.name, function(files) {
+        getFileInDir(slash(config.tmpDir + 'extract/' + req.params.name), function(files) {
             
             var selectedFuncs = req.body.funcs;
             
@@ -79,7 +80,7 @@ module.exports.deleteFunc = function(req, res, next) {
             var zip = new AdmZip();
 
             for(var i = 0; i < files.length; i++){
-                files[i] = files[i].replace(config.tmpDir + 'extract\\' + req.params.name + '\\', '')
+                files[i] = slash(files[i]).replace(slash(config.tmpDir + 'extract/' + req.params.name + '/'), '')
             }
             
             Project.findOne({name: req.params.name}, function(err, project) {
@@ -90,7 +91,7 @@ module.exports.deleteFunc = function(req, res, next) {
                     if (selectedFuncs.indexOf(project.functions[i].name) != -1) {
                         functions.push({
                             name: project.functions[i].name,
-                            file: project.functions[i].file
+                            file: slash(project.functions[i].file)
                         });
                     }
                 }
@@ -103,7 +104,7 @@ module.exports.deleteFunc = function(req, res, next) {
                         if(functions[j].file === files[i]) {
                             bIsFound = true;
                             
-                            var fileContent = fs.readFileSync(config.tmpDir + 'extract\\' + req.params.name + '\\' + files[i], "utf8");
+                            var fileContent = fs.readFileSync(slash(config.tmpDir + 'extract/' + req.params.name + '/' + files[i]), "utf8");
                         
                             var re = new RegExp("<!--.*{CodeBlox\\+" + functions[j].name + "}.*-->[^]*<!--.*{CodeBlox\\-" + functions[j].name + "}.*-->", "gmi");
                             var match = re.exec(fileContent);
@@ -112,19 +113,19 @@ module.exports.deleteFunc = function(req, res, next) {
                                 fileContent = fileContent.replace(match[0], "");
                             }
                             
-                            zip.addFile(functions[j].file, new Buffer(fileContent));
+                            zip.addFile(slash(functions[j].file), new Buffer(fileContent));
                         }
                     }
                     
                     if (!bIsFound) {
-                        zip.addLocalFile(config.tmpDir + 'extract\\' + req.params.name + '\\' + files[i],
-                                        files[i].replace(config.tmpDir + 'extract\\' + req.params.name + '\\', '').replace(path.basename(files[i]), ''));
+                        zip.addLocalFile(slash(config.tmpDir + 'extract/' + req.params.name + '/' + files[i]),
+                                        slash(files[i]).replace(slash(config.tmpDir + 'extract/' + req.params.name + '/'), '').replace(path.basename(files[i]), ''));
                     }
                 }
                 var uid = randomstring.generate(5);
-                zip.writeZip(config.tmpDir + 'codeblox/' + req.params.name + '-' + uid + '.zip');
+                zip.writeZip(slash(config.tmpDir + 'codeblox/' + req.params.name + '-' + uid + '.zip'));
                 
-                res.download(config.tmpDir + 'codeblox/' + req.params.name + '-' + uid + '.zip');
+                res.download(slash(config.tmpDir + 'codeblox/' + req.params.name + '-' + uid + '.zip'));
             });
         });
     }
