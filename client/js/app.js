@@ -51,7 +51,7 @@ app.controller('projectsController', function($http, $scope) {
 app.directive('cbProject', function($http){
     return {
         restrict: 'A',
-        templateUrl: 'project.html',
+        templateUrl: '../views/project.html',
         scope: {
           project: "="
         },
