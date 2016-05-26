@@ -20,6 +20,10 @@ app.controller('projectsController', function($http, $scope) {
             picName: "../images/shop.jpg"
         },
         {
+            projName: "front-end Only",
+            picName: "../images/chat.JPG"
+        },
+        {
             projName: "students",
             picName: "../images/shop.jpg"
         },
@@ -44,6 +48,7 @@ app.controller('projectsController', function($http, $scope) {
     
     $http.get(serverSite + '/api/projects').then(function(data){
         $scope.projects = data.data;
+        $scope.projects.push({ name: "front-end Only"})
     });
     
 });
