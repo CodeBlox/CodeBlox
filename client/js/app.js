@@ -16,7 +16,7 @@ app.controller('projectsController', function($http, $scope) {
             picName: "../images/chat.JPG"
         },
         {
-            projName: "Shop",
+            projName: "shop",
             picName: "../images/shop.jpg"
         },
         {
@@ -25,7 +25,7 @@ app.controller('projectsController', function($http, $scope) {
         },
         {
             projName: "students",
-            picName: "../images/shop.jpg"
+            picName: "../images/students.png"
         },
         {
             projName: "test",
